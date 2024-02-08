@@ -1,4 +1,3 @@
-import {useEffect, useState} from "react";
 import css from "./Highlight.module.scss";
 
 export const Highlight = ({
