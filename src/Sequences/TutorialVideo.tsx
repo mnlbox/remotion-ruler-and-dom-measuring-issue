@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {AbsoluteFill, Sequence, useCurrentFrame} from "remotion";
 import {Highlight} from "../components/Highlight";
 import {Prism as SyntaxHighlighter} from "react-syntax-highlighter";
@@ -12,10 +12,14 @@ import {
 } from "../utils/highlightUtils";
 import MacOsWindow from "../components/MacOsWindow";
 
+const MEASURER_SIZE = 10;
+
 export const TutorialVideo: React.FC = () => {
 	const frame = useCurrentFrame();
 	const completeCode = exampleData.code;
 	const numberLine = completeCode.split("\n").length;
+	const measurer = useRef<HTMLDivElement>(null);
+
 
 	const [highlightProps, setHighlightProps] = useState<{
 		x: number;
@@ -37,10 +41,14 @@ export const TutorialVideo: React.FC = () => {
 
 	useEffect(() => {
 		if (
+			measurer.current &&
 			completedFrame > 0 &&
 			currentHighlightIndex >= 0 &&
 			currentHighlightIndex < exampleData.highlightExplanations.length
 		) {
+			const measurerRect = measurer.current.getBoundingClientRect();
+			const scale = MEASURER_SIZE / measurerRect.width;
+
 			const allSpans = document.getElementsByTagName("span");
 			const highlightsToFind =
 				exampleData.highlightExplanations[currentHighlightIndex].highlight;
@@ -53,11 +61,11 @@ export const TutorialVideo: React.FC = () => {
 
 			const firstRect = firstElement?.getBoundingClientRect();
 			const lastRect = lastElement?.getBoundingClientRect();
-			if (firstRect && lastRect) {
+			if (scale &&firstRect && lastRect) {
 				setHighlightProps({
-					x: firstRect.x,
-					y: firstRect.y,
-					width: lastRect.x - firstRect.x + lastRect.width,
+					x: firstRect.x * scale,
+					y: firstRect.y * scale ,
+					width: (lastRect.x - firstRect.x + lastRect.width) * scale,
 				});
 			}
 		}
@@ -66,8 +74,7 @@ export const TutorialVideo: React.FC = () => {
 	return (
 		<AbsoluteFill
 			style={{
-				background:
-					"linear-gradient(90deg, rgba(131,58,180,1) 0%, rgba(253,29,29,1) 50%, rgba(252,176,69,1) 100%)",
+				backgroundColor: "lightgreen"
 			}}
 		>
 			<AbsoluteFill>
@@ -106,7 +113,16 @@ export const TutorialVideo: React.FC = () => {
 							</>
 						)}
 				</Sequence>
+				
 			</AbsoluteFill>
+			<div
+				ref={measurer}
+				style={{
+					width: MEASURER_SIZE,
+					position: 'fixed',
+					top: -99999,
+				}}
+			/>
 		</AbsoluteFill>
 	);
 };
